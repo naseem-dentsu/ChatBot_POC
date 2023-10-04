@@ -3,7 +3,7 @@ import { RecursiveUrlLoader } from "langchain/document_loaders/web/recursive_url
 import { CharacterTextSplitter } from "langchain/text_splitter";
 import { FaissStore } from "langchain/vectorstores/faiss";
 import { OpenAIEmbeddings } from "langchain/embeddings/openai";
-import fs from 'node:fs/promises';
+import { accessSync, constants as NodeConstants } from 'node:fs';
 import constants from "./constants.js"
 import { configDotenv } from "dotenv";
 configDotenv();
@@ -19,12 +19,14 @@ export async function getDocument() {
   console.log("loading data from db")
   var isDBAvailable = false;
   try {
-    isDBAvailable = await fs.access(directory + "/docstore.json")
+    accessSync("./vector_db/docstore.json", NodeConstants.F_OK)
+    isDBAvailable = true;
   }
   catch (e) {
+    console.log(e);
     isDBAvailable = false;
   }
-  if (!!!isDBAvailable) {
+  if (!isDBAvailable) {
     console.log("local db doesnt exist, creating db this may take some time...")
 
     const compiledConvert = compile({ wordwrap: 130 }); // returns (text: string) => string;
