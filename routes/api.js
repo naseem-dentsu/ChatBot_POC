@@ -1,6 +1,7 @@
 import express from "express";
 import { run } from "../custom/langchainAgent.js";
 // import generateResponse from "../chatbot/generate_response.js";
+import generateResponse from "../chatbot/generate_response.js";
 const router = express.Router();
 
 
@@ -10,6 +11,10 @@ router.get('/', function (req, res, next) {
 });
 
 router.get('/get/response', async function (req, res, next) {
+  const data = await run("can you suggest me moisturizers?");
+  res.status(200).send(data);
+});
+router.get('/get/document', async function (req, res, next) {
   // const query = req.body.query;
   // if (!query) {
   //   return res.render("error", {
@@ -22,7 +27,7 @@ router.get('/get/response', async function (req, res, next) {
   // }
   // else {
 
-  const data = await run("can you suggest me moisturizers?");
+  const data = await generateResponse("Please compare the laptops");
   res.status(200).send(data);
   // }
 });

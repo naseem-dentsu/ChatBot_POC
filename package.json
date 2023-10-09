@@ -15,8 +15,12 @@
     "cookie-parser": "~1.4.4",
     "dotenv": "^16.3.1",
     "express": "~4.16.1",
+    "faiss-node": "^0.3.0",
+    "html-to-text": "^9.0.5",
+    "jsdom": "^22.1.0",
+    "langchain": "^0.0.153",
+    "pickleparser": "^0.1.0",
     "http-errors": "~1.6.3",
-    "jade": "~1.11.0",
-    "langchain": "^0.0.153"
+    "jade": "~1.11.0"
   }
 }
