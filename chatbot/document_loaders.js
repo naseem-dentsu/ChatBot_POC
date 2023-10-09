@@ -15,20 +15,8 @@ const urls = constants.urls;
 const embeddings = new OpenAIEmbeddings();
 const directory = "./vector_db";
 
-export async function getDocument() {
-  console.log("loading data from db")
-  var isDBAvailable = false;
+export async function saveSiteData() {
   try {
-    accessSync("./vector_db/docstore.json", NodeConstants.F_OK)
-    isDBAvailable = true;
-  }
-  catch (e) {
-    console.log(e);
-    isDBAvailable = false;
-  }
-  if (!isDBAvailable) {
-    console.log("local db doesnt exist, creating db this may take some time...")
-
     const compiledConvert = compile({ wordwrap: 130 }); // returns (text: string) => string;
 
     //load word document
@@ -55,6 +43,27 @@ export async function getDocument() {
     );
     //store the file 
     await OpenAI_VectorStore.save(directory);
+    return true;
+  }
+  catch (e) {
+    return false;
+  }
+}
+
+export async function getDocument() {
+  console.log("loading data from db")
+  var isDBAvailable = false;
+  try {
+    accessSync("./vector_db/docstore.json", NodeConstants.F_OK)
+    isDBAvailable = true;
+  }
+  catch (e) {
+    console.log(e);
+    isDBAvailable = false;
+  }
+  if (!isDBAvailable) {
+    console.log("local db doesnt exist, creating db this may take some time...")
+    await saveSiteData();
   }
 
   //load it from the local file

@@ -1,18 +1,31 @@
 import { configDotenv } from "dotenv";
 import { OpenAI } from "langchain/llms/openai";
-import { RetrievalQAChain } from "langchain/chains";
+import { ConversationalRetrievalQAChain } from "langchain/chains";
+import { BufferMemory } from "langchain/memory";
+import constants from "./constants.js"
 configDotenv();
 
-export default async function chainQueries(vectorStoreRetriever, query) {
-  const llm = new OpenAI({
-    temperature: 0.9,
-  });
+const ChainPrompt = constants.ChainPrompt;
+const model = new OpenAI({
+});
 
-  const chain = RetrievalQAChain.fromLLM(llm, vectorStoreRetriever);
-  const res = await chain.call({
-    query: query,
-  });
+export default async function chainQueries(vectorStoreRetriever) {
 
-  return res;
+
+  const chain = ConversationalRetrievalQAChain.fromLLM(
+    model,
+    vectorStoreRetriever,
+    {
+      memory: new BufferMemory({
+        memoryKey: "chat_history",
+        returnMessages: true,
+      }),
+      questionGeneratorChainOptions: {
+        template: ChainPrompt,
+      },
+    }
+  );
+
+  return chain;
 
 }

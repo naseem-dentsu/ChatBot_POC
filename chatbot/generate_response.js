@@ -5,6 +5,11 @@ export default async function generateResponse(query) {
 
   const vectorStoreRetriever = await getDocument();
 
-  const queryResult = await chainQueries(vectorStoreRetriever, query);
-  return queryResult;
+  const chain = await chainQueries(vectorStoreRetriever);
+
+  const res = await chain.call({
+    question: query,
+  });
+
+  return res;
 }
