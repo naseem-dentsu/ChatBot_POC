@@ -1,7 +1,7 @@
 import express from "express";
-import { run } from "../custom/langchainAgent.js";
+import { run } from "../chatbot/bySearch/langchainAgent.js";
 // import generateResponse from "../chatbot/generate_response.js";
-import generateResponse from "../chatbot/generate_response.js";
+import generateResponse from "../chatbot/usingDocuments/generate_response.js";
 const router = express.Router();
 
 
@@ -10,26 +10,40 @@ router.get('/', function (req, res, next) {
   res.render('index', { title: 'Api Page' });
 });
 
-router.get('/get/response', async function (req, res, next) {
-  const data = await run("can you suggest me moisturizers?");
-  res.status(200).send(data);
+//Using search results
+router.post('/query/search', async function (req, res, next) {
+  const query = req.body.query;
+  if (!query) {
+    return res.render("error", {
+      message: "No query Found",
+      error: {
+        status: 401,
+        stack: ""
+      }
+    })
+  }
+  else {
+    const data = await run(query);
+    res.status(200).send(data);
+  }
 });
-router.get('/get/document', async function (req, res, next) {
-  // const query = req.body.query;
-  // if (!query) {
-  //   return res.render("error", {
-  //     message: "No query Found",
-  //     error: {
-  //       status: 401,
-  //       stack: ""
-  //     }
-  //   })
-  // }
-  // else {
 
-  const data = await generateResponse("Please compare the laptops");
-  res.status(200).send(data);
-  // }
+//using web scrapper
+router.post('/query/document', async function (req, res, next) {
+  const query = req.body.query;
+  if (!query) {
+    return res.render("error", {
+      message: "No query Found",
+      error: {
+        status: 401,
+        stack: ""
+      }
+    })
+  }
+  else {
+    const data = await generateResponse(query);
+    res.status(200).send(data);
+  }
 });
 
 export default router;
