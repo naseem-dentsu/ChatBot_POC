@@ -1,27 +1,27 @@
 import {
-    LLMSingleActionAgent,
-    AgentActionOutputParser,
-    AgentExecutor,
-  } from "langchain/agents";
-  import { LLMChain } from "langchain/chains";
-  import { OpenAI } from "langchain/llms/openai";
-  import {
-    BaseStringPromptTemplate,
-    renderTemplate,
-  } from "langchain/prompts";
-  import { SerpAPI, Tool } from "langchain/tools";
-  import { Calculator } from "langchain/tools/calculator";
-  import { searchApi } from "./searchApi.js";
+  LLMSingleActionAgent,
+  AgentActionOutputParser,
+  AgentExecutor,
+} from "langchain/agents";
+import { LLMChain } from "langchain/chains";
+import { OpenAI } from "langchain/llms/openai";
+import {
+  BaseStringPromptTemplate,
+  renderTemplate,
+} from "langchain/prompts";
+import { SerpAPI, Tool } from "langchain/tools";
+import { Calculator } from "langchain/tools/calculator";
+import { searchApi } from "./searchApi.js";
 
-  const PREFIX = `Answer the following questions as best you can. You have access to the following tools:`;
-  const SUFFIX = `Begin!
+const PREFIX = `Answer the following questions as best you can. You have access to the following tools:`;
+const SUFFIX = `Begin!
 
   Question: {input}
   Thought:{agent_scratchpad}`;
 
-  const formatInstructions = (
-    toolNames, input, tools
-  ) => `Clarina is a professional beauty coach working for shiseido (shiseido.co.uk) whos primary tasks is to help users navigate shiseido.co.uk and help them get their questions answered ragrding the varios products on the website.
+const formatInstructions = (
+  toolNames, input, tools
+) => `Clarina is a professional beauty coach working for shiseido (shiseido.co.uk) whos primary tasks is to help users navigate shiseido.co.uk and help them get their questions answered ragrding the varios products on the website.
 
   Clarina always recommends products from shiseido.co.uk which are relevant to the topic at hand and NOT of any of other brands.
 
@@ -62,108 +62,116 @@ import {
   Begin! Remember to answer as a professional beauty coach when giving your final answer.
 
   New input: ${input}`;
-  
-  class CustomPromptTemplate extends BaseStringPromptTemplate {
-    tools;
-  
-    constructor(args) {
-      super({ inputVariables: args.inputVariables });
-      this.tools = args.tools;
-    }
-  
-    _getPromptType(){
-    }
-  
-    format(input){
-      /** Construct the final template */
-      const toolStrings = this.tools
-        .map((tool) => `${tool.name}: ${tool.description}`)
-        .join("\n");
-      const toolNames = this.tools.map((tool) => tool.name).join("\n");
-      const instructions = formatInstructions(toolNames, input);
-      const template = [PREFIX, toolStrings, instructions, SUFFIX].join("\n\n");
-      /** Construct the agent_scratchpad */
-      const intermediateSteps = input.intermediate_steps;
-      const agentScratchpad = intermediateSteps.reduce(
-        (thoughts, { action, observation }) =>
-          thoughts +
-          [action.log, `\nObservation: ${observation}`, "Thought:"].join("\n"),
-        ""
-      );
-      const newInput = { agent_scratchpad: agentScratchpad, ...input };
-      /** Format the template. */
-      return Promise.resolve(renderTemplate(template, "f-string", newInput));
-    }
-  
-    partial(_values){
-      throw new Error("Not implemented");
-    }
-  
-    serialize() {
-      throw new Error("Not implemented");
-    }
+
+class CustomPromptTemplate extends BaseStringPromptTemplate {
+  tools;
+
+  constructor(args) {
+    super({ inputVariables: args.inputVariables });
+    this.tools = args.tools;
   }
-  
-  class CustomOutputParser extends AgentActionOutputParser {
-    lc_namespace = ["langchain", "agents", "custom_llm_agent"];
-  
-    async parse(text){
-        // console.log("agent output =", text);
-      if (text.includes("Final Answer:")) {
-        const parts = text.split("Final Answer:");
-        const input = parts[parts.length - 1].trim();
-        const finalAnswers = { output: input };
-        return { log: text, returnValues: finalAnswers };
-      }
-  
-      const match = /Action: (.*)\nAction Input: (.*)/s.exec(text);
-      if (!match) {
-        throw new Error(`Could not parse LLM output: ${text}`);
-      }
-  
-      return {
-        tool: match[1].trim(),
-        toolInput: match[2].trim().replace(/^"+|"+$/g, ""),
-        log: text,
-      };
-    }
-  
-    getFormatInstructions() {
-    }
+
+  _getPromptType() {
   }
-  
-  export const run = async (input_text) => {
-    const model = new OpenAI({ temperature: 0 });
-    const tools = [
-        searchApi,
-      new Calculator(),
-    ];
-  
-    const llmChain = new LLMChain({
-      prompt: new CustomPromptTemplate({
-        tools,
-        inputVariables: ["input", "agent_scratchpad"],
-      }),
-      llm: model,
-    });
-  
-    const agent = new LLMSingleActionAgent({
-      llmChain,
-      outputParser: new CustomOutputParser(),
-      stop: ["\nObservation"],
-    });
-    const executor = new AgentExecutor({
-      agent,
+
+  format(input) {
+    /** Construct the final template */
+    const toolStrings = this.tools
+      .map((tool) => `${tool.name}: ${tool.description}`)
+      .join("\n");
+    const toolNames = this.tools.map((tool) => tool.name).join("\n");
+    const instructions = formatInstructions(toolNames, input);
+    const template = [PREFIX, toolStrings, instructions, SUFFIX].join("\n\n");
+    /** Construct the agent_scratchpad */
+    const intermediateSteps = input.intermediate_steps;
+    const agentScratchpad = intermediateSteps.reduce(
+      (thoughts, { action, observation }) =>
+        thoughts +
+        [action.log, `\nObservation: ${observation}`, "Thought:"].join("\n"),
+      ""
+    );
+    const newInput = { agent_scratchpad: agentScratchpad, ...input };
+    /** Format the template. */
+    return Promise.resolve(renderTemplate(template, "f-string", newInput));
+  }
+
+  partial(_values) {
+    throw new Error("Not implemented");
+  }
+
+  serialize() {
+    throw new Error("Not implemented");
+  }
+}
+
+class CustomOutputParser extends AgentActionOutputParser {
+  lc_namespace = ["langchain", "agents", "custom_llm_agent"];
+
+  async parse(text) {
+    console.log("agent output =", text);
+    if (text.includes("Final Answer:")) {
+      const parts = text.split("Final Answer:");
+      const input = parts[parts.length - 1].trim();
+      const finalAnswers = { output: input };
+      return { log: text, returnValues: finalAnswers };
+    }
+
+
+    if (text.includes("AI:")) {
+      const parts = text.split("AI:");
+      const input = parts[parts.length - 1].trim();
+      const finalAnswers = { output: input };
+      return { log: text, returnValues: finalAnswers };
+    }
+
+    const match = /Action: (.*)\nAction Input: (.*)/s.exec(text);
+    if (!match) {
+      throw new Error(`Could not parse LLM output: ${text}`);
+    }
+
+    return {
+      tool: match[1].trim(),
+      toolInput: match[2].trim().replace(/^"+|"+$/g, ""),
+      log: text,
+    };
+  }
+
+  getFormatInstructions() {
+  }
+}
+
+export const run = async (input_text) => {
+  const model = new OpenAI({ temperature: 0 });
+  const tools = [
+    searchApi,
+    new Calculator(),
+  ];
+
+  const llmChain = new LLMChain({
+    prompt: new CustomPromptTemplate({
       tools,
-    });
-    // console.log("Loaded agent.");
-  
-    const input = input_text;
-  
-    // console.log(`Executing with input "${input}"...`);
-  
-    const result = await executor.call({ input });
-  
-    // console.log(`Got output ${result.output}`);
-    return result;
-  };
+      inputVariables: ["input", "agent_scratchpad"],
+    }),
+    llm: model,
+  });
+
+  const agent = new LLMSingleActionAgent({
+    llmChain,
+    outputParser: new CustomOutputParser(),
+    stop: ["\nObservation"],
+  });
+  const executor = new AgentExecutor({
+    agent,
+    tools,
+  });
+  // console.log("Loaded agent.");
+
+  const input = input_text;
+
+  // console.log(`Executing with input "${input}"...`);
+
+  const result = await executor.call({ input });
+
+  // console.log(`Got output ${result.output}`);
+  return result;
+};
