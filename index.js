@@ -3,8 +3,8 @@
 /**
  * Module dependencies.
  */
-import configuration from "../config.js";
-import app from "../app.js";
+import configuration from "./config.js";
+import app from "./app.js";
 import http from "http";
 
 /**
