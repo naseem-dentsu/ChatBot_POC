@@ -7,7 +7,24 @@ const router = express.Router();
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  res.send({ title: 'Api Page' });
+  res.send({
+    "readme": `
+  
+  Node js version should be above 16
+
+  This is an express app that lets us connect to the Chatbot using langchain framework
+  
+  Please use npm run start to start the server on PORT 3000
+  Please ask for env file with @naseem-dentsu or @aditi-kharche
+  
+  There are two endpoints 
+  1. https://chat-bot-poc.vercel.app/api/query/search :  Uses search engines to create results for the Chatbot
+  2. https://chat-bot-poc.vercel.app/api/query/document : Uses webscraping to create results for the Chatbot
+  
+  This is just the initial basic level chatbot further improvements to enhance the search skills 
+  require paid OpenApi access instead of a free one.
+   
+  `});
 });
 
 //Using search results
