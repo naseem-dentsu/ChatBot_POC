@@ -58,6 +58,7 @@ export async function getDocument() {
     accessSync("./vector_db/docstore.json", NodeConstants.F_OK)
     isDBAvailable = true;
     fileSaved = true;
+    console.log("local db available");
   }
   catch (e) {
     isDBAvailable = false;

@@ -2,29 +2,22 @@ import express from "express";
 import { run } from "../chatbot/bySearch/langchainAgent.js";
 // import generateResponse from "../chatbot/generate_response.js";
 import generateResponse from "../chatbot/usingDocuments/generate_response.js";
-const router = express.Router();
+import { saveSiteData } from "../chatbot/usingDocuments/document_loaders.js";
+import { accessSync, constants as NodeConstants } from 'node:fs';
 
+
+
+const router = express.Router();
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  res.send({
-    "readme": `
-  
-  Node js version should be above 16
-
-  This is an express app that lets us connect to the Chatbot using langchain framework
-  
-  Please use npm run start to start the server on PORT 3000
-  Please ask for env file with @naseem-dentsu or @aditi-kharche
-  
-  There are two endpoints 
-  1. https://chat-bot-poc.vercel.app/api/query/search :  Uses search engines to create results for the Chatbot
-  2. https://chat-bot-poc.vercel.app/api/query/document : Uses webscraping to create results for the Chatbot
-  
-  This is just the initial basic level chatbot further improvements to enhance the search skills 
-  require paid OpenApi access instead of a free one.
-   
-  `});
+  res.send(`
+    There are two endpoints<br> 
+    1. https://chat-bot-poc.vercel.app/api/query/search :  Uses search engines to create results for the Chatbot<br>
+    2. https://chat-bot-poc.vercel.app/api/query/document : Uses webscraping to create results for the Chatbot<br>
+    This is just the initial basic level chatbot further improvements to enhance the search skills <br>
+    require paid OpenApi access instead of a free one.
+  `);
 });
 
 //Using search results
@@ -60,6 +53,26 @@ router.post('/query/document', async function (req, res, next) {
   else {
     const data = await generateResponse(query);
     res.status(200).send(data);
+  }
+});
+
+router.post("/create/vector", async function (req, res, next) {
+  const fileSaved = await saveSiteData();
+  if (fileSaved) {
+    return res.status(200).send("Data Stored Successfully");
+  }
+  else {
+    return res.status(500).send("Something went wrong please check logs");
+  }
+});
+
+router.get('/check/vector', async function (req, res, next) {
+  try {
+    accessSync("./vector_db/docstore.json", NodeConstants.F_OK)
+    return res.send("locally available");
+  }
+  catch (e) {
+    return res.status(500).send(e);
   }
 });
 
