@@ -4,6 +4,7 @@ import { run } from "../chatbot/bySearch/langchainAgent.js";
 import generateResponse from "../chatbot/usingDocuments/generate_response.js";
 import { saveSiteData } from "../chatbot/usingDocuments/document_loaders.js";
 import { accessSync, constants as NodeConstants } from 'node:fs';
+import { cwd } from "node:process";
 
 
 
@@ -68,8 +69,8 @@ router.post("/create/vector", async function (req, res, next) {
 
 router.get('/check/vector', async function (req, res, next) {
   try {
-    accessSync("./vector_db/docstore.json", NodeConstants.F_OK)
-    return res.send("locally available");
+    accessSync(cwd() + "/vector_db/docstore.json", NodeConstants.F_OK)
+    return res.send("locally available ON " + cwd());
   }
   catch (e) {
     return res.status(500).send(e);

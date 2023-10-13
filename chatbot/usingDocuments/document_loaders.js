@@ -6,6 +6,7 @@ import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { accessSync, constants as NodeConstants } from 'node:fs';
 import constants from "../constants.js"
 import { configDotenv } from "dotenv";
+import { cwd } from "node:process";
 configDotenv();
 
 
@@ -13,7 +14,7 @@ const urls = constants.urls;
 
 /* Create instance for embedding */
 const embeddings = new OpenAIEmbeddings();
-const directory = "./vector_db";
+const directory = cwd() + "./vector_db";
 
 export async function saveSiteData() {
   try {
@@ -55,7 +56,7 @@ export async function getDocument() {
   var isDBAvailable = false;
   var fileSaved = false;
   try {
-    accessSync("./vector_db/docstore.json", NodeConstants.F_OK)
+    accessSync(cwd() + "./vector_db/docstore.json", NodeConstants.F_OK)
     isDBAvailable = true;
     fileSaved = true;
     console.log("local db available");
