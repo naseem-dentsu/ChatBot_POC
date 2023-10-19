@@ -10,6 +10,8 @@ There are two endpoints
 1. localhost:3000/api/query/search :  Uses search engines to create results for the Chatbot
 2. localhost:3000/api/query/document : Uses webscraping to create results for the Chatbot
 
+The second one doesnt work due to time contraints by the hosted env
+
 This is just the initial basic level chatbot further improvements to enhance the search skills 
 require paid OpenApi access instead of a free one. 
 
