@@ -42,6 +42,7 @@ router.post('/query/search', async function (req, res, next) {
 //using web scrapper
 router.post('/query/document', async function (req, res, next) {
   const query = req.body.query;
+  const chat_history = req.body.history;
   if (!query) {
     return res.render("error", {
       message: "No query Found",
@@ -52,7 +53,7 @@ router.post('/query/document', async function (req, res, next) {
     })
   }
   else {
-    const data = await generateResponse(query);
+    const data = await generateResponse(query, chat_history);
     res.status(200).send(data);
   }
 });
