@@ -7,9 +7,9 @@ const vectorStoreRetriever = await getDocument();
 const chain = await chainQueries(vectorStoreRetriever);
 
 export default async function generateResponse(query, chat_history = "") {
-  const res = await chain.call({
+  const res = await chain.invoke({
     question: query,
-    chat_history
+    chatHistory: chat_history
   });
 
   return res;

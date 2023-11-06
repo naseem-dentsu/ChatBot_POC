@@ -1,28 +1,38 @@
 import { configDotenv } from "dotenv";
-import { OpenAI } from "langchain/llms/openai";
-import { ConversationalRetrievalQAChain } from "langchain/chains";
-import constants from "../constants.js"
+import constants from "../constants.js";
+import { ChatOpenAI } from "langchain/chat_models/openai";
+import { PromptTemplate } from "langchain/prompts";
+import { RunnableSequence } from "langchain/schema/runnable";
+import { StringOutputParser } from "langchain/schema/output_parser";
+import { formatDocumentsAsString } from "langchain/util/document";
+
 configDotenv();
 
 const ChainPrompt = constants.ChainPrompt;
-const baseModel = new OpenAI({ temperature: 0.9 });
+const baseModel = new ChatOpenAI({ temperature: 0.9 });
+
+const questionPrompt = PromptTemplate.fromTemplate(
+  ChainPrompt
+);
 
 export default async function chainQueries(vectorStoreRetriever) {
 
-  const chain = ConversationalRetrievalQAChain.fromLLM(
-    baseModel,
-    vectorStoreRetriever,
+  const chain = RunnableSequence.from([
     {
-      questionGeneratorChainOptions: {
-        llm: baseModel
+      question: (input) =>
+        input.question,
+      chatHistory: (input) =>
+        input.chatHistory ?? "",
+      context: async (input) => {
+        const relevantDocs = await vectorStoreRetriever.getRelevantDocuments(input.question);
+        const serialized = formatDocumentsAsString(relevantDocs);
+        return serialized;
       },
-      // returnSourceDocuments: true
-      qaChainOptions: {
-        type: "map_reduce",
-        prompt: ChainPrompt
-      }
-    }
-  );
+    },
+    questionPrompt,
+    baseModel,
+    new StringOutputParser(),
+  ]);
 
   return chain;
 
