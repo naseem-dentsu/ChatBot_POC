@@ -16,12 +16,12 @@
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "~4.16.1",
-    "faiss-node": "^0.3.0",
+    "faiss-node": "^0.5.1",
     "html-to-text": "^9.0.5",
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
     "jsdom": "^22.1.0",
-    "langchain": "^0.0.153",
-    "pickleparser": "^0.1.0"
+    "langchain": "^0.0.175",
+    "pickleparser": "^0.2.1"
   }
 }
