@@ -9,7 +9,15 @@ import { formatDocumentsAsString } from "langchain/util/document";
 configDotenv();
 
 const ChainPrompt = constants.ChainPrompt;
-const baseModel = new ChatOpenAI({ temperature: 0.9 });
+const baseModel = new ChatOpenAI({
+  temperature: 0.9, callbacks: [
+    {
+      handleLLMEnd: (output) => {
+        console.log(output); // tokenUsage is empty
+      },
+    },
+  ],
+});
 
 const questionPrompt = PromptTemplate.fromTemplate(
   ChainPrompt
@@ -26,6 +34,7 @@ export default async function chainQueries(vectorStoreRetriever) {
       context: async (input) => {
         const relevantDocs = await vectorStoreRetriever.getRelevantDocuments(input.question);
         const serialized = formatDocumentsAsString(relevantDocs);
+        console.log(serialized);
         return serialized;
       },
     },
