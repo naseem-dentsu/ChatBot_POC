@@ -53,8 +53,21 @@ router.post('/query/document', async function (req, res, next) {
     })
   }
   else {
+    //w/o streaming
     const data = await generateResponse(query, chat_history);
-    res.status(200).send(data);
+    // res.status(200).send(data);
+
+    // with streaming
+    res.writeHead(200, {
+      'Content-Type': 'text/plain',
+      'Transfer-Encoding': 'chunked'
+    })
+    let streamedResult = "";
+    for await (const chunk of data) {
+      // streamedResult += chunk;
+      res.write(chunk);
+    }
+    res.end();
   }
 });
 
