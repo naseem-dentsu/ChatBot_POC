@@ -1,4 +1,5 @@
 import { compile } from "html-to-text";
+import { MultiVectorRetriever } from "langchain/retrievers/multi_vector";
 import { RecursiveUrlLoader } from "langchain/document_loaders/web/recursive_url";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { FaissStore } from "langchain/vectorstores/faiss";
@@ -15,6 +16,8 @@ const urls = constants.urls;
 /* Create instance for embedding */
 const embeddings = new OpenAIEmbeddings();
 const directory = cwd() + "/vector_db";
+const directoryOld = cwd() + "/vector_db_old";
+
 
 export async function saveSiteData() {
   try {
@@ -23,7 +26,7 @@ export async function saveSiteData() {
     //load word document
     const loader = new RecursiveUrlLoader(urls[0], {
       extractor: compiledConvert,
-      maxDepth: 2,
+      maxDepth: 4,
       // excludeDirs: ["https://js.langchain.com/docs/api/"],
     });
 
@@ -75,6 +78,7 @@ export async function getDocument() {
       directory,
       new OpenAIEmbeddings()
     );
+
     console.log("fetched db");
 
     return loadedVectorStore.asRetriever();
