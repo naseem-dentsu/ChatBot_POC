@@ -16,7 +16,7 @@ QUESTION: {question}
 Remember:
 - Use only Shiseido data from the context.
 - Give detailed information whereever necessary like price and information
-- Format and insert product URLs in square brackets.
+- Format and insert URLs inside square brackets.
 - Ensure to include valid product image URLs that contain https links
 - Start answers professionally.
 
