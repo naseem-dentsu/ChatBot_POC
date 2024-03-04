@@ -32,7 +32,7 @@ export async function saveSiteData() {
 
     const data = await loader.load();
 
-    //split doucument in different chunks
+    //split document in different chunks
     const splitter = RecursiveCharacterTextSplitter.fromLanguage("html", {
       chunkSize: 1000,
       chunkOverlap: 200,
