@@ -14,9 +14,8 @@ configDotenv();
 const urls = constants.urls;
 
 /* Create instance for embedding */
-const embeddings = new OpenAIEmbeddings();
+const embeddings = new OpenAIEmbeddings({ maxConcurrency: 1, maxRetries: 1, modelName: "text-embedding-3-small" });
 const directory = cwd() + "/vector_db";
-const directoryOld = cwd() + "/vector_db_old";
 
 
 export async function saveSiteData() {
@@ -31,19 +30,32 @@ export async function saveSiteData() {
     });
 
     const data = await loader.load();
-
     //split document in different chunks
     const splitter = RecursiveCharacterTextSplitter.fromLanguage("html", {
-      chunkSize: 1000,
+      chunkSize: 1500,
       chunkOverlap: 200,
     });
 
     const docs = await splitter.splitDocuments(data);
+    const vectorAllStore = [];
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 
-    const OpenAI_VectorStore = await FaissStore.fromDocuments(
-      docs,
-      embeddings
-    );
+    for (let i = 0; i < docs.length; i++) {
+      await delay(20000)
+      const currstore = await FaissStore.fromDocuments(
+        docs.slice(i, i + 200),
+        embeddings,
+      );
+      i += 200;
+      vectorAllStore.push(currstore);
+    }
+
+    const OpenAI_VectorStore = vectorAllStore[0];
+
+    for (let i = 1; i < vectorAllStore.length; i++) {
+      (await OpenAI_VectorStore).mergeFrom(vectorAllStore[i])
+    }
+
     //store the file 
     await OpenAI_VectorStore.save(directory);
     return true;
@@ -76,7 +88,7 @@ export async function getDocument() {
     //load it from the local file
     const loadedVectorStore = await FaissStore.load(
       directory,
-      new OpenAIEmbeddings()
+      new OpenAIEmbeddings({ maxConcurrency: 1, maxRetries: 1, modelName: "text-embedding-3-small" })
     );
 
     console.log("fetched db");
