@@ -10,13 +10,7 @@ configDotenv();
 
 const ChainPrompt = constants.ChainPrompt;
 const baseModel = new ChatOpenAI({
-  temperature: 0.8, callbacks: [
-    {
-      handleLLMEnd: (output) => {
-        console.log(output); // tokenUsage is empty
-      },
-    },
-  ],
+  temperature: 0.8,
 });
 
 const questionPrompt = PromptTemplate.fromTemplate(
