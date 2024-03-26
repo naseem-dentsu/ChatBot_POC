@@ -1,5 +1,6 @@
-const urls = ["https://www.shiseido.com/us/en/"];
+import { cwd } from "node:process";
 
+const urls = ["https://www.shiseido.com/us/en/"];
 
 const ChainPrompt = `
 You are ShiseidoBot, a beauty coach for Shiseido. Your role is to guide users through the Shiseido website, answering questions about various products. 
@@ -26,7 +27,10 @@ Remember:
 
 Begin! If unsure, admit it; don't make up answers.`;
 
+const workingDirectory = cwd() + "/storage/";
+
 export default {
   urls,
   ChainPrompt,
+  workingDirectory
 };

@@ -1,24 +1,24 @@
 import { compile } from "html-to-text";
-import { MultiVectorRetriever } from "langchain/retrievers/multi_vector";
 import { RecursiveUrlLoader } from "langchain/document_loaders/web/recursive_url";
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { FaissStore } from "langchain/vectorstores/faiss";
-import { OpenAIEmbeddings } from "langchain/embeddings/openai";
-import { accessSync, constants as NodeConstants } from 'node:fs';
 import constants from "../constants.js"
+import { DirectoryLoader } from "langchain/document_loaders/fs/directory";
+import {
+  JSONLoader,
+  JSONLinesLoader,
+} from "langchain/document_loaders/fs/json";
+import { TextLoader } from "langchain/document_loaders/fs/text";
+import { CSVLoader } from "langchain/document_loaders/fs/csv";
 import { configDotenv } from "dotenv";
-import { cwd } from "node:process";
 configDotenv();
 
-
 const urls = constants.urls;
-
-/* Create instance for embedding */
-const embeddings = new OpenAIEmbeddings();
-const directory = cwd() + "/vector_db";
-const directoryOld = cwd() + "/vector_db_old";
+const cwd = constants.workingDirectory;
 
 
+/**
+ * Crawls a given website and resuts data 
+ * currently set to depth of 4 to prevent rate limiters 
+ *  */
 export async function saveSiteData() {
   try {
     const compiledConvert = compile({ wordwrap: 130 }); // returns (text: string) => string;
@@ -31,22 +31,7 @@ export async function saveSiteData() {
     });
 
     const data = await loader.load();
-
-    //split document in different chunks
-    const splitter = RecursiveCharacterTextSplitter.fromLanguage("html", {
-      chunkSize: 1000,
-      chunkOverlap: 200,
-    });
-
-    const docs = await splitter.splitDocuments(data);
-
-    const OpenAI_VectorStore = await FaissStore.fromDocuments(
-      docs,
-      embeddings
-    );
-    //store the file 
-    await OpenAI_VectorStore.save(directory);
-    return true;
+    return data;
   }
   catch (e) {
     console.log(e);
@@ -54,42 +39,28 @@ export async function saveSiteData() {
   }
 }
 
-export async function getDocument() {
-  console.log("loading data from db")
-  var isDBAvailable = false;
-  var fileSaved = false;
+/**
+ * Loads different types of files in a provided directory 
+ * useful for getting data from multiple sources
+ *  */
+export async function saveDocuments() {
   try {
-    accessSync(cwd() + "/vector_db/docstore.json", NodeConstants.F_OK)
-    isDBAvailable = true;
-    fileSaved = true;
-    console.log("local db available");
-  }
-  catch (e) {
-    isDBAvailable = false;
-  }
-  if (!isDBAvailable) {
-    console.log("local db doesnt exist, creating db this may take some time...")
-    fileSaved = await saveSiteData();
-  }
-
-  if (fileSaved) {
-    //load it from the local file
-    const loadedVectorStore = await FaissStore.load(
-      directory,
-      new OpenAIEmbeddings()
+    const loader = new DirectoryLoader(
+      cwd + "/documents",
+      {
+        ".json": (path) => new JSONLoader(path, "/texts"),
+        ".jsonl": (path) => new JSONLinesLoader(path, "/html"),
+        ".txt": (path) => new TextLoader(path),
+        ".csv": (path) => new CSVLoader(path, "text"),
+      }
     );
-
-    console.log("fetched db");
-
-    return loadedVectorStore.asRetriever();
+    const docs = await loader.load();
+    return docs
+  } catch (error) {
+    console.log(e);
+    return false;
   }
-
-  else {
-    return false
-  }
-
 
 }
-
 
 export default getDocument;

@@ -62,7 +62,6 @@ router.post('/query/document', async function (req, res, next) {
       'Content-Type': 'text/plain',
       'Transfer-Encoding': 'chunked'
     })
-    let streamedResult = "";
     for await (const chunk of data) {
       // streamedResult += chunk;
       res.write(chunk);
