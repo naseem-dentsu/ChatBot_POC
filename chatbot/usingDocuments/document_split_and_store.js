@@ -1,22 +1,31 @@
+import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { FaissStore } from "langchain/vectorstores/faiss";
 
 
-const embeddings = new OpenAIEmbeddings();
+const embeddings = new OpenAIEmbeddings({ maxConcurrency: 1, maxRetries: 1, modelName: "text-embedding-3-small" })
+
 
 const htmlSplitter = RecursiveCharacterTextSplitter.fromLanguage("html", {
-  chunkSize: 1000,
-  chunkOverlap: 200,
+  chunkSize: 2000,
+  chunkOverlap: 400,
 });
 
-const textSplitter = RecursiveCharacterTextSplitter(
+const textSplitter = new RecursiveCharacterTextSplitter(
   {
-    chunkSize: 1000,
-    chunkOverlap: 200,
+    chunkSize: 2000,
+    chunkOverlap: 400,
   }
 )
 
-
+/**
+ * Splits the collected data / text into smaller chunks which 
+ * are then converted into indexes and saved locally for future purpose
+ * @param {document} data 
+ * @param {string} directory 
+ * @param {html | text} type 
+ * @returns true | false
+ */
 export async function splitAndStoreDocuments(data, directory, type) {
   try {
     //split document in different chunks
@@ -24,13 +33,28 @@ export async function splitAndStoreDocuments(data, directory, type) {
 
     const docs = await splitter.splitDocuments(data);
 
-    const OpenAI_VectorStore = await FaissStore.fromDocuments(
-      docs,
-      embeddings
-    );
+    const vectorAllStore = [];
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+    for (let i = 0; i < docs.length; i++) {
+      await delay(20000)
+      const currstore = await FaissStore.fromDocuments(
+        docs.slice(i, i + 200),
+        embeddings,
+      );
+      i += 200;
+      vectorAllStore.push(currstore);
+    }
+
+    const OpenAI_VectorStore = vectorAllStore[0];
+
+    for (let i = 1; i < vectorAllStore.length; i++) {
+      (await OpenAI_VectorStore).mergeFrom(vectorAllStore[i])
+    }
+
     //store the file 
     await OpenAI_VectorStore.save(directory);
-    return true
+    return true;
   }
   catch (e) {
     console.log(e);

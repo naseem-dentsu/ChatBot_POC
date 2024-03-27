@@ -18,7 +18,6 @@ const questionPrompt = PromptTemplate.fromTemplate(
 );
 
 export default async function chainQueries(vectorStoreRetriever) {
-
   const chain = RunnableSequence.from([
     {
       question: (input) =>

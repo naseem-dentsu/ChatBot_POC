@@ -70,7 +70,7 @@ router.post('/query/document', async function (req, res, next) {
   }
 });
 
-router.post("/create/vector", async function (req, res, next) {
+router.post("/create/siteData", async function (req, res, next) {
   const fileSaved = await saveSiteData();
   if (fileSaved) {
     return res.status(200).send("Data Stored Successfully");
@@ -80,14 +80,14 @@ router.post("/create/vector", async function (req, res, next) {
   }
 });
 
-router.get('/check/vector', async function (req, res, next) {
-  try {
-    accessSync(cwd() + "/vector_db/docstore.json", NodeConstants.F_OK)
-    return res.send("locally available ON " + cwd());
-  }
-  catch (e) {
-    return res.status(500).send(e);
-  }
-});
+// router.get('/check/vector', async function (req, res, next) {
+//   try {
+//     accessSync(cwd + "/vector_db/docstore.json", NodeConstants.F_OK)
+//     return res.send("locally available ON " + cwd());
+//   }
+//   catch (e) {
+//     return res.status(500).send(e);
+//   }
+// });
 
 export default router;

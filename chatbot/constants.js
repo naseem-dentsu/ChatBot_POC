@@ -1,6 +1,6 @@
 import { cwd } from "node:process";
-const urls = ["https://www.shiseido.co.uk/gb/en/"];
 
+const urls = ["https://www.shiseido.co.uk/gb/en/"];
 
 const ChainPrompt = `
 You are Shiseido, a beauty coach for Shiseido. Your role is to guide users through the Shiseido website, answering questions about various products. 
@@ -27,10 +27,17 @@ Remember:
 
 Begin! If unsure, admit it; don't make up answers.`;
 
-const workingDirectory = cwd() + "/storage/";
+
+const storage = cwd() + "/storage/"
+const Directories = {
+  "storage": storage,
+  "crawled_db": storage + "crawled_db",
+  "text_db": storage + "text_db",
+  "documents": storage + "documents",
+}
 
 export default {
   urls,
   ChainPrompt,
-  workingDirectory
+  Directories
 };
