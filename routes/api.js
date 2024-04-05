@@ -1,10 +1,7 @@
 import express from "express";
 import { run } from "../chatbot/bySearch/langchainAgent.js";
-// import generateResponse from "../chatbot/generate_response.js";
-import generateResponse from "../chatbot/usingDocuments/generate_response.js";
-import { saveSiteData } from "../chatbot/usingDocuments/document_loaders.js";
-import { accessSync, constants as NodeConstants } from 'node:fs';
-import { cwd } from "node:process";
+import { generateResponseFromSiteData, generateResponseFromTextData } from "../chatbot/usingDocuments/generate_response.js";
+import { saveDocuments, saveSiteData } from "../chatbot/usingDocuments/document_loaders.js";
 
 
 
@@ -25,7 +22,7 @@ router.get('/', function (req, res, next) {
 router.post('/query/search', async function (req, res, next) {
   const query = req.body.query;
   if (!query) {
-    return res.render("error", {
+    return res.status(401).send({
       message: "No query Found",
       error: {
         status: 401,
@@ -40,11 +37,11 @@ router.post('/query/search', async function (req, res, next) {
 });
 
 //using web scrapper
-router.post('/query/document', async function (req, res, next) {
+router.post('/query/site-data', async function (req, res, next) {
   const query = req.body.query;
   const chat_history = req.body.history;
   if (!query) {
-    return res.render("error", {
+    return res.status(401).send({
       message: "No query Found",
       error: {
         status: 401,
@@ -54,7 +51,7 @@ router.post('/query/document', async function (req, res, next) {
   }
   else {
     //w/o streaming
-    const data = await generateResponse(query, chat_history);
+    const data = await generateResponseFromSiteData(query, chat_history);
     // res.status(200).send(data);
 
     // with streaming
@@ -70,8 +67,52 @@ router.post('/query/document', async function (req, res, next) {
   }
 });
 
+//using text documents
+router.post('/query/text-data', async function (req, res, next) {
+  const query = req.body.query;
+  const chat_history = req.body.history;
+  if (!query) {
+    return res.status(401).send({
+      message: "No query Found",
+      error: {
+        status: 401,
+        stack: ""
+      }
+    })
+  }
+  else {
+    //w/o streaming
+    const data = await generateResponseFromTextData(query, chat_history);
+    // res.status(200).send(data);
+
+    // with streaming
+    res.writeHead(200, {
+      'Content-Type': 'text/plain',
+      'Transfer-Encoding': 'chunked'
+    })
+    for await (const chunk of data) {
+      // streamedResult += chunk;
+      res.write(chunk);
+    }
+    res.end();
+  }
+});
+
+/* Creates Data using web scrapping for our chatbot */
 router.post("/create/siteData", async function (req, res, next) {
   const fileSaved = await saveSiteData();
+  if (fileSaved) {
+    return res.status(200).send("Data Stored Successfully");
+  }
+  else {
+    return res.status(500).send("Something went wrong please check logs");
+  }
+});
+
+/* Creates Data using json / csv / text documents for our chatbot */
+router.post("/create/textData", async function (req, res, next) {
+  console.log("inside api")
+  const fileSaved = await saveDocuments();
   if (fileSaved) {
     return res.status(200).send("Data Stored Successfully");
   }

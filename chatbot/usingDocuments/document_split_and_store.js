@@ -13,8 +13,8 @@ const htmlSplitter = RecursiveCharacterTextSplitter.fromLanguage("html", {
 
 const textSplitter = new RecursiveCharacterTextSplitter(
   {
-    chunkSize: 2000,
-    chunkOverlap: 400,
+    chunkSize: 500,
+    chunkOverlap: 10,
   }
 )
 

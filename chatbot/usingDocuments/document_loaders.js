@@ -49,12 +49,15 @@ export async function saveDocuments() {
     const loader = new DirectoryLoader(
       directory.documents,
       {
-        ".json": (path) => new JSONLoader(path, "/texts"),
-        ".jsonl": (path) => new JSONLinesLoader(path, "/html"),
+        ".json": (path) => new JSONLoader(path),
+        ".jsonl": (path) => new JSONLinesLoader(),
         ".txt": (path) => new TextLoader(path),
-        ".csv": (path) => new CSVLoader(path, "text"),
+        ".csv": (path) => new CSVLoader(path),
       }
     )
+
+    const data = await loader.load();
+    return splitAndStoreDocuments(data, directory.text_db, "text")
   }
   catch (e) {
     console.log(e)
